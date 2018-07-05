@@ -1,0 +1,66 @@
+#Instalar paquetes
+install.packages("tm")  # for text mining
+install.packages("SnowballC") # for text stemming
+install.packages("wordcloud") # word-cloud generator 
+install.packages("RColorBrewer") # color palettes
+install.packages("NLP") # lo pide para TM
+install.packages("slam") # lo pide para TM
+install.packages("Rcpp") # lo pide para TM
+#Cargar paquetes
+library("tm")
+library("SnowballC")
+library("wordcloud")
+library("RcolorBrewer")
+# Seleccionar el archivo de texto
+text <- readLines(file.choose())
+#Explorar el texto
+text
+#Convertir el texto en UTF-8
+text <- readLines(file.choose(), encoding="UTF-8")
+#Convertir el texto en ASCII
+text = iconv(text, to="ASCII//TRANSLIT")
+#Explorar el texto
+text
+#Construye un corpus
+corpus <- Corpus(VectorSource(text))
+corpus
+inspect(corpus)
+#lleva a minúscula
+d <- tm_map(corpus, tolower)
+# quita espacios en blanco
+d <- tm_map(d, stripWhitespace)
+#remueve la puntuación
+d <- tm_map(d, removePunctuation)
+#carga archivo de palabras vacías personalizada y lo convierte en ascii
+sw <- readLines(file.choose(), encoding="UTF-8")
+#Verificar el diccionario stopwords
+sw
+#Convertir el diccionario stopwords en ASCII
+sw = iconv(sw, to="ASCII//translit")
+# Remueve palabras genéricas
+d <- tm_map(d, removeWords, stopwords("spanish"))
+# REmueve palabras vacías personalizadas del diccionario stopwords
+d <- tm_map(d, removeWords, sw)
+#Crea Matriz de Términos
+tdm <- TermDocumentMatrix(d)
+#Probar con qué frecuencia es más práctico mostrar las palabras
+findFreqTerms(tdm, lowfreq=20)
+findFreqTerms(tdm, lowfreq=10)
+findFreqTerms(tdm, lowfreq=5)
+# remoción personalizada de palabras que se repiten luego de ver frecuencias (esto es ad-hoc) 
+d <- tm_map(d, removeWords, c("divisiones"))
+tdm <- TermDocumentMatrix(d)
+#nueva matriz para ordenar la data
+m <- as.matrix(tdm)
+#se debe ordenar en filas y en forma decreciente según la frecuencia
+v <- sort(rowSums(m), decreasing=TRUE)
+#Para organizar la información con los nombres de las palabras y que muestre también la frecuencia
+df <- data.frame(word = names(v), freq=v)
+#Generar la nube de palabras
+wordcloud(df$word, df$freq, min.freq=3)
+#Lista los 10 primeros resultados
+head(df, 10)
+#Genera gráfico de barras con las palabras más frecuentes
+barplot(df[1:10,]$freq, las = 2, names.arg = df[1:10,]$word, col = "lightblue", main = "Palabras empleadas con mayor frecuencia", ylab="frecuencia de la palabra")
+
+
